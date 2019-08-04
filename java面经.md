@@ -376,3 +376,101 @@ linkedhashmap和hashmap比，他的取元素顺序和拿元素一样，底层数
 基本数据类型都存在栈中，跟常量池一样，如果有了就直接指向 int i=9，int j=9，那么都指向栈的9的位置，
 ```final int x=9；``` 指向常量池的9
 
+## 分钟传媒
+### 算法题：
++ 写一个熟悉的排序算法
++ 求两个单链表的第一个交点（无环）
+注意：要判断队列是否为null
++ 两个栈模拟一个队列
+
+### java基础
+### Spring boot是什么
+其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式来进行配置，从而使开发人员不再需要定义，样板化的配置，包括@Autowire都是SpringBoot的功能，以前没有SpringBoot的话很多Spring的配置文件，xml文件等，去实现ioc
+### Spring的bean的装配过程
+懒加载：就是我们在spring容器启动的是先不把所有的bean都加载到spring的容器中去，而是在当需要用的时候，才把这个对象实例化到容器中，默认是false，设成true以后     
+Spring的bean都是由beanFactory创建出来的，ApplicationContext继承了BeanFactory的接口，两者都是Spring的工厂类，一般来说用后者目前者比较原始，后者是前者的派生类，最大的区别是后者是启动容器时加载了所有的类，有利于进行注入的检查     
+如下     
+如果lazy_init设置为true，ApplicationContext实现bean的初始化其实是以下流程     
+AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("/beans.xml"); //随着spring容器加载，就不会实例化bean。     
+Person person = ctx.getBean("person");//这一步才在实例化bean。就是前面说的需要的时候再实例化了。     
+所以他会直接实例化所有的bean，存放在堆内存里     
+ApplicaionContext和BeanFafactory相比，最大的区别是应用启动的时候就进行了bean的实例化，    
+应用上下文，是一个xml的配置文件，现在一般用config注解实现，然后会调用他的核心方法去实例化    beanhttps://blog.csdn.net/pythias_/article/details/82752881
+BeanFactory：是IOC容器的核心接口， 它定义了IOC的基本功能，我们看到它主要定义了getBean方法，BeanFactory 只能管理单例（Singleton）Bean 的生命周期，对于单实例（singleton）的Bean来说，BeanFactory会缓存Bean实例，所以第二次使用getBean时直接从IoC容器缓存中获取Bean
+在ioc扫描组件先是定义beandefinition，真的实际化开始的过程:    
+Spring实际化bean的流程：
++ 实例化，从getbean()开始
++ 设置属性值，比如发现一个autowire进来的对象没有实例化，就会去递归实际化他，本质是用反射调用set方法
++ 如果实现了BeanNameAware接口,调用setBeanName设置Bean的ID或者Name
+指定了component名字就表示实现了这个方法么？？？？？？
++ 如果实现BeanFactoryAware接口,调用setBeanFactory 设置BeanFactory;
++ 如果实现ApplicationContextAware,调用setApplicationContext设置ApplicationContext，这两种工厂方法的回调是ioc容器指定的顺序，但是写在class生成的bean中会使得spring和代码耦合性强，这几个方法都是ioc自动会进行的
++ 调用BeanPostProcessor的预先初始化方法，是ioc容器提供的针对所有的bean的统一的方法，这一步包括了以上三个aware的方法
++ 调用InitializingBean的afterPropertiesSet()方法，前提是bean实现了initializingBean接口，是每个bean自己的
++ 调用定制init-method方法，是每个bean自己定义的
++ 调用BeanPostProcessor的后初始化方法;，是iox容器针对所有bean统一的。
++ 销毁
+
+### redis的底层实现  redis挂了怎么办
+Redis提供了将数据定期自动持久化至硬盘的能力，包括RDB和AOF两种方案     
++ rbd的优点：每隔一段时间检查文件变化，然后超过多少次将快照（把整个内存数据映射到硬盘中）保存到一个rbd文件中，此时redis会fork一个子进程，恢复起来很快，但是仍然可能丢失部分文件      
++ AOF：Redis会把每一个写请求都记录在一个日志文件里，所以能够保证能够完全恢复数据到最新     
+我们只用来做缓存，如果redis没有就直接从数据库或者接口拿了     
+redis是单线程的    
+redis挂了一般用什么恢复机制？？？？？？？？     
+我们只用了redis做缓存，没有做持久化    
+### 新生代的复制方法的缺点
+堆内存分代完全是为了优化gc的性能    
+新生代的复制算法为何由两个变成了三个块，就为了节省内存 （因为新生代的存活率很低，清除后只剩很小的一块），每次可以用9/10分新生代区域    
+优点：不会产生内存碎片    
+标记整理和标记清除的区别，g1和cms的区别    
+常说的GC(Garbage Collector) roots，特指的是垃圾收集器（Garbage Collector）的对象，GC会收集那些不是GC roots且没有被GC roots引用的对象。类实例化的对象就是gc root的一种
+各种算法的优缺点：https://www.cnblogs.com/fangfuhai/p/7203468.html?utm_source=itdadao&utm_medium=referral
+总结：    
+可达性分析：遍历所有的GC Roots对象，对从GC Roots对象可达的对象都打上一个标识，一般是在对象的header中，将其记录为可达对象；    
+所谓gc root一定要是，所有Java线程当前活跃的栈帧里指向GC堆里的对象的引用，不能像交叉引用，比如A，B对象之间互相引用，其实都没有用了，进入了死循环永不会被销毁    
+java所有的执行线程运行时必须停止，因为可达性分析变化时，gc回收就没意义了    
+标记清除（标记阶段和清除阶段）：      
+要遍历，效率低，且容易出现内存碎片，当要分配一个大的区域时，可能引起新的gc     
+复制     
+优点：只需要进行一部分区域的遍历，效率提高，且没内存碎片，他是直接复制。剩下的全部清除，所以不需要遍历。现率高一些   
+缺点：会由一步部分内存无法使用     
+标记/整理算法    
+先标记，再整理到另一端-清理       
+解决了复制算法的缺点和标记清除的缺点   
+还要整理所有存活对象的引用地址，复制不用么？？？？？？？？？为何        
+如果一个对象内部有互相引用的话，不算是gc root的话， 就不能够被标记为可达性的对象， 还是会被清除掉的    
+ 
+### Spring mvc是什么
+### Spring主要用到了哪些设计模式
+### java1.7和1.8的区别
+### concurrent  hashmap是什么，hashmap和hashtable的区别
++ hashtable：线程安全，是加上synchronized关键字，效率不高，不建议使用，不能存null的值和key
++ hashmap：线程不安全，可以存一个key为null的，值可以有很多为null的
++ concurrenthashmap：是对于hashTable的一种改进，是线程安全的，通过分成不同segment加reentranlock，Hashtable的synchronized是针对整张Hash表的，即每次锁住整张表让线程独占，ConcurrentHashMap允许多个修改操作并发进行，其关键在于使用了锁分离技术，用的reentranlock，我理解是因为用synionized的话是锁住整个方法了，用reentranlock（可以显示地加lock（））可以将16个segement分段new 这个锁出来，被不同的线程锁住，最多可以🈶️不同16个线程进行修改，效率提高了
+ 
+### 什么时候会发生栈的溢出  
+### 方法无限递归压栈超过深度
+### 请求线程过多，因为每个线程会有一个栈内存空间，栈被撑爆了
+对于栈的理解：栈是以线程为单位的存储空间，当new一个对象时，会将其引用地址存在该线程的栈空间，并指向一个堆空间，存储真实的对象信息，当执行方法时，才会进行压栈弹栈的方式来存储方法执行过程的局部变量，在栈中，方法执行完了，就没了，所以方法无限递归，线程栈空间有限，会被撑爆
+
+### redis的底层原理
+### Spring提供的事务的一些参数
+@Transactional 只能被应用到public方法上, 不然不生效，可以设置rollback的或者列表，或者不进行rollback的   
+
+### 脏读、幻读、不可重复读的区别：    
++ 脏读：如果可以读取一个事务处理中的数据（commit前已经被修改掉的，可能被回滚的数据），那么是脏读
++ 可重复读：一个事务查询时，多次查询得到一行的结果是一样的
++ 幻读：用一样的条件查，查出来的结果是不同的条数   
+Transactional的隔离级别，一般用的read_commit和repeatable_read    
+read_commit:在事务2提交前是允许查询到事务2操作前的数据的，不会查到修改过没提交的数据，所以解决了脏读的问题，    
+但是不能解决重复读、幻读的问题     
+repeatable_read:在事务2提交前不允许查update 的更新，解决了不可重复读的问题，但是可以查询到insert的更新，所以不可避免幻读    
+一般来说，sql server的数据库隔离级别为read_commit,所以当查询select的时候，会查询到事务改变前的数据    
+加了no lock相当于read_uncommmited,查询到更新了没提交的时候，出现脏读
+    
+### 总结：
+1.猎头不靠谱，要猎头不要瞎写简历
+2.字好看点，逻辑清晰
+
+### 我们的事务回滚为何一定要在dao层？？？
